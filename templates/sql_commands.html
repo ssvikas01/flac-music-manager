@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Studio & Reference – FLAC Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .sql-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem 4rem;
+        }
+        .sql-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gold);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+        .back-btn:hover {
+            border-color: var(--gold);
+            background: var(--surface-2);
+        }
+        /* Interactive Console Panel */
+        .terminal-panel {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .terminal-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .terminal-title h2 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .terminal-presets select {
+            background: var(--surface-2);
+            color: var(--text-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            font-family: var(--font);
+            outline: none;
+            cursor: pointer;
+        }
+        .sql-textarea {
+            width: 100%;
+            height: 140px;
+            background: #060608;
+            color: #4ade80;
+            font-family: var(--mono);
+            font-size: 0.95rem;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            resize: vertical;
+            outline: none;
+            box-sizing: border-box;
+            line-height: 1.5;
+        }
+        .sql-textarea:focus {
+            border-color: var(--gold);
+        }
+        .action-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+        .hint-text {
+            font-size: 0.8rem;
+            color: var(--text-3);
+        }
+        .run-btn {
+            background: var(--gold);
+            color: #000;
+            font-weight: 600;
+            border: none;
+            padding: 0.6rem 1.6rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .run-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        /* Results Table */
+        .results-wrapper {
+            margin-top: 1.25rem;
+            max-height: 380px;
+            overflow-y: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+        }
+        .sql-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            font-family: var(--font);
+            text-align: left;
+        }
+        .sql-table th {
+            position: sticky;
+            top: 0;
+            background: var(--surface-3);
+            color: var(--gold);
+            font-family: var(--mono);
+            font-weight: 600;
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .sql-table td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-2);
+            white-space: nowrap;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sql-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-1);
+        }
+        .feedback-msg {
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            border-radius: var(--radius-md);
+            margin-top: 1rem;
+            display: none;
+        }
+        .feedback-success {
+            background: rgba(74, 222, 128, 0.1);
+            color: var(--green);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+        }
+        .feedback-error {
+            background: rgba(248, 113, 113, 0.1);
+            color: var(--red);
+            border: 1px solid rgba(248, 113, 113, 0.2);
+        }
+
+        /* Documentation Sections */
+        .doc-section {
+            margin-bottom: 2rem;
+        }
+        .doc-section h3 {
+            color: var(--gold);
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .code-block {
+            background: #08080a;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            position: relative;
+        }
+        .code-block pre {
+            margin: 0;
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--text-2);
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+        .quick-run-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--gold);
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quick-run-btn:hover {
+            background: var(--gold);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Bar -->
+    <nav class="topbar">
+        <div class="topbar-brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="3"/>
+                <line x1="12" y1="2" x2="12" y2="5"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+            </svg>
+            <span>FLAC Library</span>
+        </div>
+        <div>
+            <a href="/" class="back-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Back to Library
+            </a>
+        </div>
+    </nav>
+
+    <div class="sql-container">
+        
+        <!-- Live Execution Studio -->
+        <div class="terminal-panel">
+            <div class="terminal-title">
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="4 17 10 11 4 5"></polyline>
+                        <line x1="12" y1="19" x2="20" y2="19"></line>
+                    </svg>
+                    Live SQL Console (SQLite)
+                </h2>
+                <div class="terminal-presets">
+                    <select id="preset-selector" onchange="loadPreset()">
+                        <option value="">-- Choose Sample Query --</option>
+                        <option value="SELECT title, duration, bit_depth, sample_rate FROM Songs JOIN AudioQuality USING(quality_id) LIMIT 10;">1. Inspect First 10 Songs & Quality</option>
+                        <option value="SELECT a.name AS artist, COUNT(s.song_id) AS track_count FROM Songs s JOIN Albums al ON s.album_id = al.album_id JOIN Artists a ON al.artist_id = a.artist_id GROUP BY a.name ORDER BY track_count DESC LIMIT 10;">2. Top 10 Artists by Song Count</option>
+                        <option value="SELECT g.name AS genre, COUNT(s.song_id) AS count, ROUND(AVG(s.duration), 1) AS avg_duration_sec FROM Songs s JOIN Genres g ON s.genre_id = g.genre_id GROUP BY g.name ORDER BY count DESC;">3. Genre Distribution & Avg Duration</option>
+                        <option value="SELECT aq.bit_depth, aq.sample_rate, COUNT(*) AS count FROM Songs s JOIN AudioQuality aq ON s.quality_id = aq.quality_id GROUP BY aq.bit_depth, aq.sample_rate ORDER BY count DESC;">4. Audio Quality Specs Breakdown</option>
+                        <option value="SELECT title, file_size / (1024*1024) AS size_mb FROM Songs ORDER BY file_size DESC LIMIT 5;">5. Top 5 Largest FLAC Files</option>
+                        <option value="SELECT name FROM sqlite_master WHERE type='table';">6. List All Tables in Database</option>
+                    </select>
+                </div>
+            </div>
+
+            <textarea id="sql-input" class="sql-textarea" placeholder="Type or paste any SQL query here... (e.g. SELECT * FROM Songs LIMIT 10;)">SELECT s.title, a.name AS artist, al.title AS album, s.bit_depth, s.sample_rate, s.duration
+FROM Songs s
+JOIN Albums al ON s.album_id = al.album_id
+JOIN Artists a ON al.artist_id = a.artist_id
+LIMIT 10;</textarea>
+
+            <div class="action-row">
+                <span class="hint-text">Press <strong>Run Query</strong> or hit <strong>Ctrl + Enter</strong> to execute.</span>
+                <button class="run-btn" onclick="executeCurrentQuery()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    Run Query
+                </button>
+            </div>
+
+            <div id="feedback" class="feedback-msg"></div>
+
+            <div id="results-container" class="results-wrapper" style="display: none;">
+                <table class="sql-table" id="results-table">
+                    <thead id="results-head"></thead>
+                    <tbody id="results-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Documentation & Reference Queries -->
+        <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Syllabus & Core Query Reference</h2>
+
+        <div class="doc-section">
+            <h3>1. Multi-Table JOIN & Analysis</h3>
+            <div class="code-block">
+                <button class="quick-run-btn" onclick="setAndRun(this)">Load & Run</button>
+                <pre><code>SELECT a.name AS artist, al.title AS album, COUNT(s.song_id) AS total_tracks,
+       ROUND(SUM(s.file_size) / (1024.0*1024.0), 2) AS total_album_mb
+FROM Songs s
+JOIN Albums al ON s.album_id = al.album_id
+JOIN Artists a ON al.artist_id = a.artist_id
+GROUP BY al.album_id
+ORDER BY total_tracks DESC
+LIMIT 10;</code></pre>
+            </div>
+        </div>
+
+        <div class="doc-section">
+            <h3>2. High-Resolution Audio Filter (Bit Depth >= 24)</h3>
+            <div class="code-block">
+                <button class="quick-run-btn" onclick="setAndRun(this)">Load & Run</button>
+                <pre><code>SELECT s.title, a.name AS artist, aq.bit_depth, aq.sample_rate, aq.bitrate
+FROM Songs s
+JOIN Albums al ON s.album_id = al.album_id
+JOIN Artists a ON al.artist_id = a.artist_id
+JOIN AudioQuality aq ON s.quality_id = aq.quality_id
+WHERE aq.bit_depth >= 24
+ORDER BY aq.sample_rate DESC, aq.bitrate DESC
+LIMIT 15;</code></pre>
+            </div>
+        </div>
+
+        <div class="doc-section">
+            <h3>3. Aggregations (Storage & Duration Statistics)</h3>
+            <div class="code-block">
+                <button class="quick-run-btn" onclick="setAndRun(this)">Load & Run</button>
+                <pre><code>SELECT 
+    COUNT(*) AS total_songs,
+    ROUND(SUM(file_size) / (1024.0*1024.0*1024.0), 2) AS total_gb,
+    ROUND(AVG(duration), 1) AS avg_duration_sec,
+    MAX(file_size) / (1024*1024) AS max_file_mb
+FROM Songs;</code></pre>
+            </div>
+        </div>
+
+        <div class="doc-section">
+            <h3>4. Schema DDL Structure</h3>
+            <div class="code-block">
+                <pre><code>CREATE TABLE Artists (
+    artist_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE Albums (
+    album_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    artist_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    release_year INTEGER,
+    FOREIGN KEY (artist_id) REFERENCES Artists(artist_id)
+);
+
+CREATE TABLE Songs (
+    song_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    album_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    track_number INTEGER,
+    duration REAL,
+    file_size INTEGER,
+    quality_id INTEGER,
+    genre_id INTEGER,
+    play_count INTEGER DEFAULT 0,
+    rating REAL DEFAULT 0,
+    FOREIGN KEY (album_id) REFERENCES Albums(album_id),
+    FOREIGN KEY (genre_id) REFERENCES Genres(genre_id),
+    FOREIGN KEY (quality_id) REFERENCES AudioQuality(quality_id)
+);</code></pre>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function loadPreset() {
+            const select = document.getElementById('preset-selector');
+            if (select.value) {
+                document.getElementById('sql-input').value = select.value;
+            }
+        }
+
+        function setAndRun(btn) {
+            const code = btn.nextElementSibling.innerText.trim();
+            document.getElementById('sql-input').value = code;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            executeCurrentQuery();
+        }
+
+        document.getElementById('sql-input').addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                executeCurrentQuery();
+            }
+        });
+
+        async function executeCurrentQuery() {
+            const query = document.getElementById('sql-input').value.trim();
+            const feedback = document.getElementById('feedback');
+            const resultsContainer = document.getElementById('results-container');
+            const thead = document.getElementById('results-head');
+            const tbody = document.getElementById('results-body');
+
+            feedback.style.display = 'none';
+            feedback.className = 'feedback-msg';
+
+            if (!query) {
+                feedback.innerText = 'Please enter a query.';
+                feedback.classList.add('feedback-error');
+                feedback.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/execute_sql', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ query: query })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    feedback.innerText = 'Error: ' + (data.error || 'Execution failed');
+                    feedback.classList.add('feedback-error');
+                    feedback.style.display = 'block';
+                    resultsContainer.style.display = 'none';
+                    return;
+                }
+
+                if (data.columns && data.rows) {
+                    thead.innerHTML = '';
+                    tbody.innerHTML = '';
+
+                    // Headers
+                    const trHead = document.createElement('tr');
+                    data.columns.forEach(col => {
+                        const th = document.createElement('th');
+                        th.textContent = col;
+                        trHead.appendChild(th);
+                    });
+                    thead.appendChild(trHead);
+
+                    // Rows
+                    if (data.rows.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="' + data.columns.length + '" style="text-align:center; padding:1.5rem; color:var(--text-3);">0 rows returned.</td></tr>';
+                    } else {
+                        data.rows.forEach(row => {
+                            const tr = document.createElement('tr');
+                            data.columns.forEach(col => {
+                                const td = document.createElement('td');
+                                const val = row[col];
+                                td.textContent = val !== null && val !== undefined ? val : 'NULL';
+                                tr.appendChild(td);
+                            });
+                            tbody.appendChild(tr);
+                        });
+                    }
+
+                    resultsContainer.style.display = 'block';
+                    feedback.innerText = 'Success: Fetched ' + data.rows.length + ' row(s).';
+                    feedback.classList.add('feedback-success');
+                    feedback.style.display = 'block';
+                } else {
+                    resultsContainer.style.display = 'none';
+                    feedback.innerText = data.message || 'Executed successfully.';
+                    feedback.classList.add('feedback-success');
+                    feedback.style.display = 'block';
+                }
+
+            } catch (err) {
+                feedback.innerText = 'Network error: ' + err.message;
+                feedback.classList.add('feedback-error');
+                feedback.style.display = 'block';
+                resultsContainer.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
