@@ -1,0 +1,24 @@
+# Local music catalogue and audio data
+flac_library.db
+*.db-wal
+*.db-shm
+*.flac
+*.wav
+*.mp3
+*.m4a
+
+# Local secrets and environment
+.env
+.env.*
+
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Generated reports and exports
+*.pdf
+*.docx
+*.pptx
